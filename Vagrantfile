@@ -38,9 +38,8 @@ Vagrant.configure(2) do |config|
 
 	controller.vm.provision "shell", inline: <<-SHELL
       apt-add-repository ppa:ansible/ansible
-      apt-get update
+      apt-get update && apt-get upgrade -y && apt-get autoremove
       apt-get install software-properties-common ansible git zip unzip mc -y
-      apt-get autoremove
       ssh-keygen -t rsa -q -N '' -f /home/vagrant/.ssh/id_rsa
       cp /home/vagrant/.ssh/id_rsa.pub /vagrant/ssh/id_rsa.pub
       cp /vagrant/ssh/config /home/vagrant/.ssh/config
@@ -69,8 +68,7 @@ Vagrant.configure(2) do |config|
        end
 
 	 webserver.vm.provision "shell", inline: <<-SHELL
-      apt-get update
-      #apt-get upgrade -y
+      apt-get update && apt-get upgrade -y && apt-get autoremove
       cat /vagrant/ssh/id_rsa.pub >> /home/vagrant/.ssh/authorized_keys
       apt-get install htop stress zip unzip mc -y
 
@@ -99,7 +97,7 @@ Vagrant.configure(2) do |config|
         end
 
 	   dbserver.vm.provision "shell", inline: <<-SHELL
-         apt-get update
+         apt-get update && apt-get upgrade -y && apt-get autoremove
          # apt-get upgrade -y
          apt-get install htop stress zip unzip mc -y
          cat /vagrant/ssh/id_rsa.pub >> /home/vagrant/.ssh/authorized_keys

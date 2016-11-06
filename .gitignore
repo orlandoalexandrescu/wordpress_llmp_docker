@@ -1,4 +1,3 @@
 .vagrant
 password_for_wp_user
 mysql-docker-volume
-ssh/*
