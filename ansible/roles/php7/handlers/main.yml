@@ -1,0 +1,7 @@
+---
+# handlers file for php7
+
+  - name: restart lighttpd
+    service:
+      name: lighttpd
+      state: reloaded

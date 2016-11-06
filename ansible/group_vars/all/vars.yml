@@ -1,0 +1,19 @@
+---
+  # IPs
+  dbserver_ip: 192.168.50.12
+  webserver_ip: 192.168.50.11
+
+  # mysql variables
+  mysql_root_password: "{{vaulted_mysql_root_password}}"
+  mysql_user_password: "{{vaulted_mysql_user_password}}"
+  mysql_database: "wordpress_db"
+  mysql_user: "wp_db_user"
+  mysql_port: 3306
+
+  # docker variables
+  docker_container_name: "wpmysql"
+  docker_image: "mysql"
+#  docker_volume_external_path: "/vagrant/mysql-docker-volume"
+#  docker_volume_internal_path: "/var/lib/mysql"
+  docker_volume_external_path: "/vagrant/db_export"
+  docker_volume_internal_path: "/docker-entrypoint-initdb.d"

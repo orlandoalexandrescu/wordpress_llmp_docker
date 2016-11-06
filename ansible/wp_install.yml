@@ -1,0 +1,75 @@
+---
+  - name: remove the www directory
+    file:
+      path: /var/www
+      state: absent
+    tags:
+    - wp_install
+
+  - name: create the www directory
+    file:
+      path: /var/www
+      state: directory
+      owner: www-data
+      group: www-data
+    tags:
+    - wp_install
+
+  - name: download and unzip the latest wordpress
+    unarchive:
+      remote_src: yes
+#      copy: no
+      src: https://wordpress.org/latest.zip
+      dest: /var/www
+      owner: www-data
+      group: www-data
+      mode: 0750
+      creates: latest.zip
+    tags:
+    - wp_install
+
+  - name: move the wordpress files in the correct directory
+    # the ansible "command" module does not work with wildcards, so I used "shell" instead
+    shell: mv wordpress/* .
+    args:
+       chdir: /var/www
+    tags:
+    - wp_install
+
+  - name: remove the wordpress directory
+    file:
+      path: /var/www/wordpress
+      state: absent
+    tags:
+    - wp_install
+
+  - name: get the salts
+    shell: curl https://api.wordpress.org/secret-key/1.1/salt/
+    register: auth_salts
+    tags:
+    - salts
+
+  - name: Show salts
+    debug: var=auth_salts
+    tags:
+    - salts
+
+  - name: Copy the wp-config.php template
+    template:
+      src: templates/wp-config.php.j2
+      dest: /var/www/wp-config.php
+      owner: www-data
+      group: www-data
+      mode: 0600
+    tags:
+    - salts
+
+#  - name: copy the wp-config.php file
+#    copy:
+#      src: files/wp-config.php
+#      dest: /var/www
+#      force: yes
+#      owner: www-data
+#      group: www-data
+#    tags:
+#    - wp_install

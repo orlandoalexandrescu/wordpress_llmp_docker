@@ -1,0 +1,10 @@
+---
+# tasks file for common
+
+  - name: Update cache & upgrade all packages
+    apt:
+      update_cache: true
+      upgrade: full
+      cache_valid_time: 100000
+      autoremove: yes
+

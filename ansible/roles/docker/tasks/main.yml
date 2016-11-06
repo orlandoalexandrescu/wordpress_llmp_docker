@@ -1,0 +1,69 @@
+---
+# setup docker
+
+#    - name: Add docker group
+#      group:
+#        name: docker 
+
+
+    - name: Add prereq. packages
+      apt: 
+        name: "{{ item }}"
+      with_items:
+        - apt-transport-https 
+        - ca-certificates
+
+    # Add repositories and keys
+
+    # ===== START docker repositories and keys =====
+    - name: Add docker apt repository key
+      command: sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+
+
+    - name: Add new docker apt repository
+      apt_repository:
+        repo: 'deb https://apt.dockerproject.org/repo ubuntu-trusty main'
+        state: present  
+    # ===== END docker repositories and keys =====
+
+    - name: register uname -r
+      command: uname -r
+      register: kernel_version
+
+    - name: Install packages latest versions
+      apt:
+        name: "{{ item }}"
+        state: latest
+        force: yes
+      sudo: yes
+      with_items:
+        - "linux-image-extra-{{ kernel_version.stdout }}"  
+        - apparmor
+        - docker.io
+    
+    - name: eliminate sudo for docker commands
+      command: usermod -aG docker vagrant
+      sudo: yes
+
+#   - name: Configure docker
+#     lineinfile:
+#       dest: /etc/default/docker
+#       line: 'DOCKER_OPTS="--insecure-registry {{ docker_registry_url}}"'
+#     notify: docker restart
+
+
+#   - name: copy the PIP installer
+#      copy:
+#        src: get-pip.py
+#        dest: /tmp
+
+#   - name: install the PIP tool
+#      command: python /tmp/get-pip.py
+
+    - name: install the PIP tool
+      apt:
+        name: python-pip
+        state: present
+
+    - name: install docker-py
+      command: pip install docker-py

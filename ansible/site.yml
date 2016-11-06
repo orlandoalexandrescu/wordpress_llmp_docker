@@ -1,0 +1,130 @@
+---
+### Some common tasks follow below (like package upgrading)
+- hosts: all
+
+  gather_facts: no
+
+  become: yes
+  become_user: root
+  become_method: sudo
+
+  roles:
+  - common
+
+### Tasks pertaining only to webservers
+- hosts: webservers
+
+  gather_facts: yes
+
+  become: yes
+  become_user: root
+  become_method: sudo
+
+  roles:
+  - lighttpd
+  - php7
+
+  tasks:
+    - name: Run the Wordpress install tasks from include file
+      include: wp_install.yml   # the whole text below was replaced with only one include; good for modularisation and readability
+
+  # - name: remove the www directory
+  #   file:
+  #     path: /var/www
+  #     state: absent
+  #   tags:
+  #   - wp_install
+  #
+  # - name: create the www directory
+  #   file:
+  #     path: /var/www
+  #     state: directory
+  #     owner: www-data
+  #     group: www-data
+  #   tags:
+  #   - wp_install
+  #
+  # - name: download and unzip the latest wordpress
+  #   unarchive:
+  #     remote_src: yes
+  #     copy: no
+  #     src: https://wordpress.org/latest.zip
+  #     dest: /var/www
+  #     owner: www-data
+  #     group: www-data
+  #     mode: 0750
+  #     creates: latest.zip
+  #   tags:
+  #   - wp_install
+  #
+  # - name: move the wordpress files in the correct directory
+  #   # the ansible "command" module does not work with wildcards, so I used "shell" instead
+  #   shell: mv wordpress/* .
+  #   args:
+  #      chdir: /var/www
+  #   tags:
+  #   - wp_install
+  #
+  # - name: remove the wordpress directory
+  #   file:
+  #     path: /var/www/wordpress
+  #     state: absent
+  #   tags:
+  #   - wp_install
+  #
+  # - name: copy the wp-config.php file
+  #   copy:
+  #     src: files/wp-config.php
+  #     dest: /var/www
+  #     force: yes
+  #     owner: www-data
+  #     group: www-data
+  #   tags:
+  #   - wp_install
+
+- hosts: dbservers
+
+  become: yes
+  become_user: root
+  become_method: sudo
+
+  gather_facts: no
+
+  roles:
+  - docker
+
+  tasks:
+#  - name: clear stopped mysql containers
+#    shell: docker rm $(docker ps --filter status=exited -q)
+#    ignore_errors: True #When you first create the machine, the above fails because there are no containers ever executed.
+#    tags:
+#      - clean
+
+# The above code was replaced by the below code
+
+  - name: clear previous mysql docker containers
+    docker:
+      docker_api_version: 1.18 #if you don't specify this, it will fail because of server-client version mismatch
+      name: "{{docker_container_name}}"
+      image: "{{docker_image}}"
+      state: absent
+    tags:
+      - clean
+
+  - name: start a mysql docker container
+    docker:
+      docker_api_version: 1.18 #if you don't specify this, it will fail because of server-client version mismatch
+      name: "{{docker_container_name}}"
+      image: "{{docker_image}}"
+      state: started
+      net: host
+      expose: "{{mysql_port}}"
+      ports: "{{mysql_port}}:{{mysql_port}}"
+      env:                    # this is the best practices way for configuring docker containers
+        MYSQL_ROOT_PASSWORD: "{{mysql_root_password}}"
+        MYSQL_DATABASE: "{{mysql_database}}"
+        MYSQL_USER: "{{mysql_user}}"
+        MYSQL_PASSWORD: "{{mysql_user_password}}"
+      volumes: "{{docker_volume_external_path}}:{{docker_volume_internal_path}}"
+    tags:
+       - start_mysql

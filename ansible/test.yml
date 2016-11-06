@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  
+  tasks:
+  - name: Check ansible version
+    command: ansible --version
+    register: ansible_version
+
+  - name: Print ansible version
+    debug: var=ansible_version

@@ -1,0 +1,70 @@
+---
+# tasks file for php7
+
+  - name: add apt-repository key in case of Ubuntu 14.04
+    apt_repository:
+      repo: 'ppa:ondrej/php'
+    when: "{{ansible_distribution_major_version}}==14"
+
+  - name: Update cache
+    apt:
+      update_cache: yes
+    when: "{{ansible_distribution_major_version}}==14"
+
+  - name: install php7 and additional modules
+    apt:
+      name: "{{item}}"
+      state: present
+    with_items:
+      - php7.0
+      - php7.0-fpm
+      - php7.0-mysql 
+      - php7.0-curl 
+      - php7.0-gd 
+      - php7.0-intl 
+      - php7.0-imap 
+      - php7.0-mcrypt 
+      - php7.0-pspell 
+      - php7.0-recode 
+      - php7.0-sqlite3 
+      - php7.0-tidy 
+      - php7.0-xmlrpc 
+      - php7.0-xsl 
+      - php7.0-mbstring 
+      - php-pear
+      - php-imagick
+      - php-memcache
+      - php-apc
+      - php-gettext
+
+#  - name: Check if lighttpd is installed
+    ### insert check here ##########
+
+  - name: Uncomment fixcgi in lighttpd.conf
+    lineinfile:
+       dest: /etc/php/7.0/fpm/php.ini
+       regexp: "^;cgi.fix_pathinfo"
+       line: "cgi.fix_pathinfo=1"
+    notify: restart lighttpd
+
+  - name: Copy the fastcgi-php.conf file locally
+    copy: 
+      src: 15-fastcgi-php.conf
+      dest: /etc/lighttpd/conf-available/15-fastcgi-php.conf
+
+  - name: Replace the old php socket to the php7 socket
+    lineinfile: 
+       dest: /etc/lighttpd/conf-available/15-fastcgi-php.conf
+       regexp: "\"socket\""
+       line: "\"socket\" => \"/var/run/php/php7.0-fpm.sock\","
+
+  - name: enable fastcgi
+    command: 'lighttpd-enable-mod fastcgi'
+    ignore_errors: yes
+    notify: restart lighttpd
+
+  - name: enable fastcgi-php
+    command: 'lighttpd-enable-mod fastcgi-php'
+    ignore_errors: yes
+    notify: restart lighttpd
+

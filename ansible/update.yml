@@ -1,0 +1,14 @@
+---
+- hosts: all
+
+  become: yes
+  become_user: root
+  become_method: sudo
+
+  tasks:
+
+  - name: Update cache & upgrade all packages
+    apt:
+      update_cache: true
+      upgrade: full
+      autoremove: yes
